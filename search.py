@@ -9,11 +9,11 @@ def search_text(term):
 
     rows = conn.execute(
         """
-        SELECT path, created_at
+        SELECT path, screenshot_date
         FROM screenshots
         WHERE lower(extracted_text)
         LIKE lower(?)
-        ORDER BY created_at DESC
+        ORDER BY screenshot_date DESC
         """,
         (f"%{term}%",),
     ).fetchall()
@@ -32,10 +32,10 @@ def search_since(days):
 
     rows = conn.execute(
         """
-        SELECT path, created_at
+        SELECT path, screenshot_date
         FROM screenshots
-        WHERE created_at >= ?
-        ORDER BY created_at DESC
+        WHERE screenshot_date >= ?
+        ORDER BY screenshot_date DESC
         """,
         (cutoff,),
     ).fetchall()
@@ -53,8 +53,12 @@ def print_results(results):
 
     print(f"\nFound {len(results)} result(s):\n")
 
-    for path, created_at in results:
-        print(f"{created_at} | {path}")
+    for i, (path, date) in enumerate(results, start=1):
+        filename = path.split("\\")[-1]
+
+        print(
+            f"[{i}] {date} | {filename}"
+        )
 
 
 if __name__ == "__main__":

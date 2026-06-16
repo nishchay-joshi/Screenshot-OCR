@@ -1,16 +1,19 @@
 # Screenshot OCR Search
 
-A lightweight Python tool that automatically indexes screenshots using OCR and lets you search through them later.
+Search through months of screenshots as if they were searchable notes.
+
+Screenshot OCR Search watches your screenshot folder, extracts text from screenshots using Tesseract OCR, stores the results in SQLite, and lets you search through them later.
 
 ## Features
 
 * Automatic screenshot detection
 * OCR text extraction using Tesseract
 * SQLite database storage
+* Automatic backfill of missed screenshots
 * Keyword search
 * Search screenshots from today, this week, or this month
-* Configurable screenshot folder via `config.json`
-* Runs locally
+* Configurable screenshot folder
+* Runs completely locally
 * No cloud services required
 
 ---
@@ -20,7 +23,7 @@ A lightweight Python tool that automatically indexes screenshots using OCR and l
 ```text
 Take Screenshot
        ↓
-File appears in configured screenshot folder
+File appears in screenshot folder
        ↓
 watch.py detects new file
        ↓
@@ -31,27 +34,45 @@ Text stored in SQLite
 Search later using search.py
 ```
 
+---
+
+## Automatic Backfill
+
+The watcher does more than just monitor new screenshots.
+
+When `watch.py` starts, it first scans the configured screenshot folder and checks every screenshot against the database.
+
+```text
+Start watch.py
+       ↓
+Scan screenshot folder
+       ↓
+Find screenshots not in database
+       ↓
+OCR and index them
+       ↓
+Start live monitoring
+```
+
+This means screenshots taken while the application was not running are automatically indexed the next time the watcher starts.
+
 Example:
 
-You take a screenshot of:
-
 ```text
-PostgreSQL connection string
-Host: localhost
-User: admin
+Take screenshots for a week
+       ↓
+Watcher is not running
+       ↓
+Start watch.py
+       ↓
+Missing screenshots are detected
+       ↓
+OCR is performed
+       ↓
+Database is updated
 ```
 
-Weeks later:
-
-```bash
-python search.py postgres
-```
-
-Result:
-
-```text
-2026-06-16 18:22:51 | Screenshot_20260616.png
-```
+Backfilled screenshots retain their original file timestamps, allowing date-based searches such as `--today`, `--week`, and `--month` to remain accurate.
 
 ---
 
@@ -61,7 +82,7 @@ Result:
 
 ```bash
 git clone https://github.com/nishchay-joshi/Screenshot-OCR.git
-cd screenshot-ocr-search
+cd ScreenshotOCR
 ```
 
 ### Create Virtual Environment
@@ -92,15 +113,13 @@ pip install -r requirements.txt
 
 Install Tesseract OCR on your system.
 
-Windows users may need to configure:
+If Tesseract is not available in PATH, configure the executable location inside `add.py`:
 
 ```python
 pytesseract.pytesseract.tesseract_cmd = (
     r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 )
 ```
-
-inside `add.py` if Tesseract is not available in PATH.
 
 ---
 
@@ -114,23 +133,7 @@ Create a `config.json` file:
 }
 ```
 
-Replace the path with the folder where your screenshots are automatically saved.
-
----
-
-## Initialize Database
-
-Run once:
-
-```bash
-python init_db.py
-```
-
-Creates:
-
-```text
-db.sqlite
-```
+Replace the path with the folder where screenshots are automatically saved on your system.
 
 ---
 
@@ -140,15 +143,19 @@ db.sqlite
 python watch.py
 ```
 
-Expected output:
+Example output:
 
 ```text
+Running backfill...
+
+Backfill complete. Indexed 12 file(s).
+
 Watching: C:\Users\YourName\Pictures\Screenshots
 ```
 
-Keep this process running.
+Keep this process running in the background.
 
-Every new screenshot that appears in the configured folder will be automatically indexed.
+Every new screenshot will be automatically indexed.
 
 ---
 
@@ -163,7 +170,11 @@ python search.py postgres
 Example:
 
 ```text
-2026-06-16 20:11:31 | Screenshot_20260616.png
+Found 3 result(s):
+
+2025-06-16 18:22:51 | Screenshot_001.png
+2025-06-15 11:09:13 | Screenshot_002.png
+2025-06-12 09:34:51 | Screenshot_003.png
 ```
 
 ### Today's Screenshots

@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 
 import pytesseract
 from PIL import Image
@@ -23,15 +24,19 @@ def index_image(image_path):
 
     text = extract_text(image_path)
 
+    file_time = datetime.fromtimestamp(
+        Path(image_path).stat().st_mtime
+    )
+
     conn = get_connection()
 
     conn.execute(
         """
         INSERT OR REPLACE INTO screenshots
-        (path, extracted_text)
-        VALUES (?, ?)
+        (path, extracted_text, screenshot_date)
+        VALUES (?, ?, ?)
         """,
-        (image_path, text),
+        (image_path, text, file_time),
     )
 
     conn.commit()
