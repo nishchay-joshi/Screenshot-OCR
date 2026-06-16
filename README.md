@@ -60,7 +60,7 @@ Result:
 ### Clone Repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/nishchay-joshi/Screenshot-OCR.git
 cd screenshot-ocr-search
 ```
 
