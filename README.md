@@ -2,19 +2,22 @@
 
 Search through months of screenshots as if they were searchable notes.
 
-Screenshot OCR Search watches your screenshot folder, extracts text from screenshots using Tesseract OCR, stores the results in SQLite, and lets you search through them later.
+Screenshot OCR Search automatically watches your screenshot folder, extracts text using Tesseract OCR, stores the results in SQLite, and lets you instantly search through screenshots you've taken days, weeks, or months ago.
+
+---
 
 ## Features
 
 * Automatic screenshot detection
-* OCR text extraction using Tesseract
-* SQLite database storage
+* OCR text extraction with Tesseract
+* SQLite-powered local storage
 * Automatic backfill of missed screenshots
-* Keyword search
-* Search screenshots from today, this week, or this month
-* Configurable screenshot folder
-* Runs completely locally
-* No cloud services required
+* Keyword-based screenshot search
+* Date-based filtering (`--today`, `--week`, `--month`)
+* Screenshot analytics and statistics
+* Configurable screenshot directory
+* Fully local and privacy-friendly
+* No cloud services or external APIs
 
 ---
 
@@ -25,54 +28,71 @@ Take Screenshot
        ↓
 File appears in screenshot folder
        ↓
-watch.py detects new file
+Watcher detects new file
        ↓
-Tesseract extracts text
+OCR extracts text
        ↓
 Text stored in SQLite
        ↓
-Search later using search.py
+Search screenshots later
 ```
 
 ---
 
 ## Automatic Backfill
 
-The watcher does more than just monitor new screenshots.
+The application does more than monitor new screenshots.
 
-When `watch.py` starts, it first scans the configured screenshot folder and checks every screenshot against the database.
+Whenever the watcher starts, it scans the configured screenshot directory and checks every screenshot against the database.
 
 ```text
-Start watch.py
+Start Watcher
        ↓
-Scan screenshot folder
+Scan Screenshot Folder
        ↓
-Find screenshots not in database
+Find Missing Screenshots
        ↓
-OCR and index them
+Run OCR
        ↓
-Start live monitoring
+Update Database
+       ↓
+Begin Live Monitoring
 ```
 
-This means screenshots taken while the application was not running are automatically indexed the next time the watcher starts.
+This ensures screenshots taken while the application was not running are automatically indexed the next time it starts.
 
 Example:
 
 ```text
 Take screenshots for a week
        ↓
-Watcher is not running
+Application is not running
        ↓
-Start watch.py
+Start watcher
        ↓
-Missing screenshots are detected
+Missed screenshots detected
        ↓
-OCR is performed
+OCR performed automatically
        ↓
-Database is updated
+Database updated
 ```
 
-Backfilled screenshots retain their original file timestamps, allowing date-based searches such as `--today`, `--week`, and `--month` to remain accurate.
+Backfilled screenshots retain their original file timestamps, ensuring date-based searches remain accurate.
+
+Example startup output:
+
+```text
+Running backfill...
+
+Indexed: Screenshot (263).png
+Indexed: Screenshot (264).png
+Indexed: Screenshot 2026-06-16 214351.png
+Indexed: Screenshot 2026-06-16 220045.png
+
+Backfill complete. Indexed 4 file(s).
+
+Watching: C:\Users\YourName\Pictures\Screenshots
+```
 
 ---
 
@@ -113,7 +133,7 @@ pip install -r requirements.txt
 
 Install Tesseract OCR on your system.
 
-If Tesseract is not available in PATH, configure the executable location inside `add.py`:
+If Tesseract is not available in PATH, configure the executable location inside `src/add.py`:
 
 ```python
 pytesseract.pytesseract.tesseract_cmd = (
@@ -125,7 +145,7 @@ pytesseract.pytesseract.tesseract_cmd = (
 
 ## Configuration
 
-Create a `config.json` file:
+Create a `config.json` file in the project root:
 
 ```json
 {
@@ -133,29 +153,21 @@ Create a `config.json` file:
 }
 ```
 
-Replace the path with the folder where screenshots are automatically saved on your system.
+Replace the path with the directory where screenshots are automatically saved on your system.
 
 ---
 
 ## Start Monitoring
 
 ```bash
-python watch.py
+python -m src.watch
 ```
 
-Example output:
+The watcher will:
 
-```text
-Running backfill...
-
-Backfill complete. Indexed 12 file(s).
-
-Watching: C:\Users\YourName\Pictures\Screenshots
-```
-
-Keep this process running in the background.
-
-Every new screenshot will be automatically indexed.
+1. Create database tables if needed
+2. Backfill any missing screenshots
+3. Begin monitoring for new screenshots
 
 ---
 
@@ -164,35 +176,68 @@ Every new screenshot will be automatically indexed.
 ### Keyword Search
 
 ```bash
-python search.py postgres
+python -m src.search postgres
 ```
 
-Example:
+Example output:
 
 ```text
 Found 3 result(s):
 
-2025-06-16 18:22:51 | Screenshot_001.png
-2025-06-15 11:09:13 | Screenshot_002.png
-2025-06-12 09:34:51 | Screenshot_003.png
+[1] 2025-06-16 18:22:51 | Screenshot_001.png
+[2] 2025-06-15 11:09:13 | Screenshot_002.png
+[3] 2025-06-12 09:34:51 | Screenshot_003.png
 ```
 
 ### Today's Screenshots
 
 ```bash
-python search.py --today
+python -m src.search --today
 ```
 
 ### Last Week
 
 ```bash
-python search.py --week
+python -m src.search --week
 ```
 
 ### Last Month
 
 ```bash
-python search.py --month
+python -m src.search --month
+```
+
+---
+
+## Analytics
+
+View statistics about your screenshot archive:
+
+```bash
+python -m src.stats
+```
+
+Example output:
+
+```text
+Screenshot OCR Statistics
+
+----------------------------------------
+Indexed Screenshots : 412
+Total OCR Characters: 1,248,941
+Estimated OCR Words : 248,771
+Oldest Screenshot   : 2025-03-11 08:21:14
+Newest Screenshot   : 2026-06-17 09:14:32
+Database Size       : 18.73 MB
+
+Top OCR Terms
+----------------------------------------
+docker               184
+postgres             127
+kubernetes           91
+react                82
+python               76
+----------------------------------------
 ```
 
 ---
@@ -200,13 +245,19 @@ python search.py --month
 ## Project Structure
 
 ```text
-.
-├── add.py
-├── db.py
-├── init_db.py
-├── search.py
-├── watch.py
+ScreenshotOCR/
+│
+├── src/
+│   ├── __init__.py
+│   ├── add.py
+│   ├── config.py
+│   ├── db.py
+│   ├── search.py
+│   ├── stats.py
+│   └── watch.py
+│
 ├── config.json
-├── requirements.txt
-└── db.sqlite
+├── db.sqlite
+├── README.md
+└── requirements.txt
 ```

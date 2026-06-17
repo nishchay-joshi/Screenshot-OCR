@@ -1,6 +1,7 @@
 import sqlite3
 
-DB_NAME = "db.sqlite"
+from src.config import DB_PATH
+DB_NAME = DB_PATH
 
 
 def get_connection():

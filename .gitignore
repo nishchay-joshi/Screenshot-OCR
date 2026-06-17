@@ -2,7 +2,6 @@ db.sqlite
 .idea
 .venv
 __pycache/
-screenshots
 __pycache__/
 *.pyc
 config.json

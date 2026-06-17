@@ -4,7 +4,7 @@ from datetime import datetime
 import pytesseract
 from PIL import Image
 
-from db import get_connection
+from src.db import get_connection
 
 pytesseract.pytesseract.tesseract_cmd = (
     r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -24,7 +24,7 @@ def index_image(image_path):
 
     text = extract_text(image_path)
 
-    file_time = datetime.fromtimestamp(
+    screenshot_date = datetime.fromtimestamp(
         Path(image_path).stat().st_mtime
     )
 
@@ -36,7 +36,7 @@ def index_image(image_path):
         (path, extracted_text, screenshot_date)
         VALUES (?, ?, ?)
         """,
-        (image_path, text, file_time),
+        (image_path, text, screenshot_date),
     )
 
     conn.commit()
@@ -44,12 +44,3 @@ def index_image(image_path):
 
     print(f"Indexed: {image_path}")
 
-
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) < 2:
-        print("Usage: python add.py image.png")
-        raise SystemExit
-
-    index_image(sys.argv[1])

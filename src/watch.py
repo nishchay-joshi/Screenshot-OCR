@@ -1,12 +1,15 @@
 from pathlib import Path
-import json
 import time
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from add import index_image
-from db import screenshot_exists
+from src.add import index_image
+from src.db import (
+    screenshot_exists,
+    create_tables,
+)
+from src.config import get_config
 
 
 SUPPORTED_EXTENSIONS = {
@@ -44,7 +47,7 @@ class ScreenshotHandler(FileSystemEventHandler):
             index_image(path)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(e)
 
 
 def backfill(folder):
@@ -74,25 +77,22 @@ def backfill(folder):
 
         except Exception as e:
 
-            print(f"Failed: {path.name}")
             print(e)
 
-    print(f"\nBackfill complete. Indexed {count} file(s).\n")
+    print(
+        f"\nBackfill complete. Indexed {count} file(s).\n"
+    )
 
 
 def main():
 
-    with open("config.json") as f:
-        config = json.load(f)
+    create_tables()
+
+    config = get_config()
 
     screenshot_folder = Path(
         config["screenshot_folder"]
     )
-
-    if not screenshot_folder.exists():
-        raise FileNotFoundError(
-            f"Folder not found: {screenshot_folder}"
-        )
 
     backfill(screenshot_folder)
 
@@ -106,9 +106,7 @@ def main():
 
     observer.start()
 
-    print(
-        f"Watching: {screenshot_folder.resolve()}"
-    )
+    print(f"Watching: {screenshot_folder}")
 
     try:
 
