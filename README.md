@@ -2,20 +2,22 @@
 
 Search through months of screenshots as if they were searchable notes.
 
-Screenshot OCR Search automatically watches your screenshot folder, extracts text using Tesseract OCR, stores the results in SQLite, and lets you instantly search through screenshots you've taken days, weeks, or months ago.
+Screenshot OCR Search automatically watches your screenshot folder, extracts text using Tesseract OCR, stores the results in SQLite, and lets you instantly search screenshots you've taken days, weeks, or months ago.
 
 ---
 
 ## Features
 
 * Automatic screenshot detection
-* OCR text extraction with Tesseract
+* Real-time screenshot monitoring
+* OCR text extraction using Tesseract
 * SQLite-powered local storage
 * Automatic backfill of missed screenshots
-* Keyword-based screenshot search
-* Date-based filtering (`--today`, `--week`, `--month`)
+* Keyword search
+* Search screenshots from today, this week, or this month
 * Screenshot analytics and statistics
-* Configurable screenshot directory
+* Desktop GUI
+* Configurable screenshot folder
 * Fully local and privacy-friendly
 * No cloud services or external APIs
 
@@ -26,73 +28,38 @@ Screenshot OCR Search automatically watches your screenshot folder, extracts tex
 ```text
 Take Screenshot
        ↓
-File appears in screenshot folder
-       ↓
-Watcher detects new file
+Watcher detects new screenshot
        ↓
 OCR extracts text
        ↓
 Text stored in SQLite
        ↓
-Search screenshots later
+Search later through GUI
 ```
 
 ---
 
 ## Automatic Backfill
 
-The application does more than monitor new screenshots.
-
-Whenever the watcher starts, it scans the configured screenshot directory and checks every screenshot against the database.
+When the application starts, it automatically scans the configured screenshot folder and checks every screenshot against the database.
 
 ```text
-Start Watcher
+Launch Application
        ↓
-Scan Screenshot Folder
+Backfill Runs
        ↓
-Find Missing Screenshots
+Missing Screenshots Found
        ↓
-Run OCR
+OCR Performed
        ↓
-Update Database
+Database Updated
        ↓
-Begin Live Monitoring
+Real-Time Monitoring Starts
 ```
 
-This ensures screenshots taken while the application was not running are automatically indexed the next time it starts.
-
-Example:
-
-```text
-Take screenshots for a week
-       ↓
-Application is not running
-       ↓
-Start watcher
-       ↓
-Missed screenshots detected
-       ↓
-OCR performed automatically
-       ↓
-Database updated
-```
+This ensures screenshots taken while the application was closed are automatically indexed the next time it launches.
 
 Backfilled screenshots retain their original file timestamps, ensuring date-based searches remain accurate.
-
-Example startup output:
-
-```text
-Running backfill...
-
-Indexed: Screenshot (263).png
-Indexed: Screenshot (264).png
-Indexed: Screenshot 2026-06-16 214351.png
-Indexed: Screenshot 2026-06-16 220045.png
-
-Backfill complete. Indexed 4 file(s).
-
-Watching: C:\Users\YourName\Pictures\Screenshots
-```
 
 ---
 
@@ -133,7 +100,11 @@ pip install -r requirements.txt
 
 Install Tesseract OCR on your system.
 
-If Tesseract is not available in PATH, configure the executable location inside `src/add.py`:
+If Tesseract is not available in PATH, configure the executable location inside:
+
+```text
+src/add.py
+```
 
 ```python
 pytesseract.pytesseract.tesseract_cmd = (
@@ -153,21 +124,24 @@ Create a `config.json` file in the project root:
 }
 ```
 
-Replace the path with the directory where screenshots are automatically saved on your system.
+Replace the path with the folder where screenshots are automatically saved on your system.
 
 ---
 
-## Start Monitoring
+## Launch Application
 
 ```bash
-python -m src.watch
+python -m gui.app
 ```
 
-The watcher will:
+Launching the GUI will automatically:
 
-1. Create database tables if needed
-2. Backfill any missing screenshots
-3. Begin monitoring for new screenshots
+* Start the screenshot watcher
+* Run backfill
+* Begin real-time monitoring
+* Open the search interface
+
+No separate terminal or watcher process is required.
 
 ---
 
@@ -175,70 +149,102 @@ The watcher will:
 
 ### Keyword Search
 
-```bash
-python -m src.search postgres
-```
-
-Example output:
+Enter a keyword into the search bar:
 
 ```text
-Found 3 result(s):
+postgres
+```
 
-[1] 2025-06-16 18:22:51 | Screenshot_001.png
-[2] 2025-06-15 11:09:13 | Screenshot_002.png
-[3] 2025-06-12 09:34:51 | Screenshot_003.png
+Example result:
+
+```text
+Screenshot_123.png
+2026-06-18
+
+...docker compose postgres restart command...
 ```
 
 ### Today's Screenshots
 
-```bash
-python -m src.search --today
+Click:
+
+```text
+Today
 ```
 
 ### Last Week
 
-```bash
-python -m src.search --week
+Click:
+
+```text
+Week
 ```
 
 ### Last Month
 
-```bash
-python -m src.search --month
+Click:
+
+```text
+Month
 ```
 
 ---
 
-## Analytics
+## Statistics
 
-View statistics about your screenshot archive:
-
-```bash
-python -m src.stats
-```
-
-Example output:
+Click:
 
 ```text
-Screenshot OCR Statistics
-
-----------------------------------------
-Indexed Screenshots : 412
-Total OCR Characters: 1,248,941
-Estimated OCR Words : 248,771
-Oldest Screenshot   : 2025-03-11 08:21:14
-Newest Screenshot   : 2026-06-17 09:14:32
-Database Size       : 18.73 MB
-
-Top OCR Terms
-----------------------------------------
-docker               184
-postgres             127
-kubernetes           91
-react                82
-python               76
-----------------------------------------
+Statistics
 ```
+
+View:
+
+* Total screenshots indexed
+* OCR character count
+* Estimated OCR word count
+* Oldest screenshot
+* Newest screenshot
+* Database size
+* Most common OCR terms
+
+---
+
+## Manual Backfill
+
+Click:
+
+```text
+Backfill
+```
+
+to manually scan the screenshot folder and index any screenshots that are not yet present in the database.
+
+Example:
+
+```text
+Running backfill...
+
+✓ Indexed: Screenshot_431.png
+✓ Indexed: Screenshot_432.png
+✓ Indexed: Screenshot_433.png
+
+Backfill complete. Indexed 3 file(s).
+```
+
+---
+
+## Opening Screenshots
+
+Search results are displayed as interactive cards.
+
+```text
+📄 Screenshot_123.png
+📅 2026-06-18
+🔗 Double-click to open screenshot
+```
+
+Double-click any result card to open the original screenshot.
 
 ---
 
@@ -246,6 +252,10 @@ python               76
 
 ```text
 ScreenshotOCR/
+│
+├── gui/
+│   ├── __init__.py
+│   └── app.py
 │
 ├── src/
 │   ├── __init__.py

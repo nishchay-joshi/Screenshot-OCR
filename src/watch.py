@@ -52,7 +52,9 @@ class ScreenshotHandler(FileSystemEventHandler):
 
 def backfill(folder):
 
-    print("\nRunning backfill...\n")
+    messages = []
+
+    messages.append("Running backfill...\n")
 
     count = 0
 
@@ -73,14 +75,40 @@ def backfill(folder):
 
             index_image(path)
 
+            messages.append(
+                f"✓ Indexed: {path.name}"
+            )
+
             count += 1
 
         except Exception as e:
 
-            print(e)
+            messages.append(
+                f"✗ Failed: {path.name}"
+            )
 
-    print(
-        f"\nBackfill complete. Indexed {count} file(s).\n"
+            messages.append(str(e))
+
+    messages.append("")
+    messages.append(
+        f"Backfill complete. Indexed {count} file(s)."
+    )
+
+    return messages
+
+
+def run_backfill():
+
+    create_tables()
+
+    config = get_config()
+
+    screenshot_folder = Path(
+        config["screenshot_folder"]
+    )
+
+    return backfill(
+        screenshot_folder
     )
 
 
@@ -94,7 +122,12 @@ def main():
         config["screenshot_folder"]
     )
 
-    backfill(screenshot_folder)
+    output = backfill(
+        screenshot_folder
+    )
+
+    for line in output:
+        print(line)
 
     observer = Observer()
 
