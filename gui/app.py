@@ -75,6 +75,11 @@ class ScreenshotSearchApp(ctk.CTk):
             self.search_keyword
         )
 
+        self.search_entry.bind(
+            "<KeyRelease>",
+            self.live_search
+        )
+
         search_btn = ctk.CTkButton(
             search_frame,
             text="Search",
@@ -194,7 +199,8 @@ class ScreenshotSearchApp(ctk.CTk):
             index,
             path,
             date,
-            snippet=""
+            snippet="",
+            query=None
     ):
 
         card = ctk.CTkFrame(
@@ -251,18 +257,57 @@ class ScreenshotSearchApp(ctk.CTk):
 
         if snippet:
 
-            snippet_label = ctk.CTkLabel(
+            snippet_box = ctk.CTkTextbox(
                 card,
-                text=snippet,
-                justify="left",
-                wraplength=900,
-                anchor="w"
+                height=70,
+                wrap="word",
+                font=("Segoe UI", 13)
             )
 
-            snippet_label.pack(
-                anchor="w",
+            snippet_box.pack(
+                fill="x",
                 padx=15,
                 pady=(0, 10)
+            )
+
+            snippet_box.insert(
+                "1.0",
+                snippet
+            )
+
+            if query:
+
+                start = "1.0"
+
+                while True:
+
+                    pos = snippet_box.search(
+                        query,
+                        start,
+                        stopindex="end",
+                        nocase=True
+                    )
+
+                    if not pos:
+                        break
+
+                    end = f"{pos}+{len(query)}c"
+
+                    snippet_box.tag_add(
+                        "highlight",
+                        pos,
+                        end
+                    )
+
+                    start = end
+
+                snippet_box.tag_config(
+                    "highlight",
+                    foreground="#FFD700"
+                )
+
+            snippet_box.configure(
+                state="disabled"
             )
 
         def open_file(event=None):
@@ -368,7 +413,8 @@ class ScreenshotSearchApp(ctk.CTk):
                 i,
                 path,
                 date,
-                snippet
+                snippet,
+                query
             )
 
     def search_keyword(
@@ -383,6 +429,30 @@ class ScreenshotSearchApp(ctk.CTk):
         )
 
         if not query:
+            return
+
+        results = search_text(query)
+
+        self.display_results(
+            results,
+            query=query
+        )
+
+    def live_search(self, event=None):
+
+        query = (
+            self.search_entry
+            .get()
+            .strip()
+        )
+
+        if len(query) < 2:
+            self.clear_results()
+
+            self.result_count.configure(
+                text="Ready"
+            )
+
             return
 
         results = search_text(query)

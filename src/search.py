@@ -28,10 +28,6 @@ def generate_snippet(text, query, radius=40):
 
     snippet = text[start:end]
     snippet = snippet.replace("\n", " ")
-    snippet = snippet.replace(
-        query,
-        f"[{query}]"
-    )
 
     return f"...{snippet}..."
 
