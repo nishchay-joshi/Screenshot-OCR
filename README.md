@@ -69,7 +69,7 @@ Backfilled screenshots retain their original file timestamps, ensuring date-base
 
 ```bash
 git clone https://github.com/nishchay-joshi/Screenshot-OCR.git
-cd ScreenshotOCR
+cd Screenshot-OCR
 ```
 
 ### Create Virtual Environment
