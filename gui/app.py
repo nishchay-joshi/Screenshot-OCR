@@ -332,7 +332,7 @@ class ScreenshotSearchApp(ctk.CTk):
 
         if snippet:
             clickable_widgets.append(
-                snippet_label
+                snippet_box
             )
 
         for widget in clickable_widgets:
